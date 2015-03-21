@@ -6,14 +6,20 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
+
 public class searchTest {
 	public static int number = 0;
-	private static int starLimit = 20;
+	public static String curFullName = "";
+	private static int starLimit = 0;
+	public static String propertyPath = "";
+
 	
 	public static void main(String[] args) throws IOException, InterruptedException, ParseException, JSONException {  
 		  SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd");
@@ -23,6 +29,9 @@ public class searchTest {
 	      Calendar end = Calendar.getInstance();
 	      System.out.println("end date:");
 	      end.setTime(sdf.parse(ReadLine()));
+	      System.out.println("property path:");
+	      propertyPath = ReadLine();
+	      
 	      
 	      // run it day by day
 	      for (Date date = start.getTime(); !start.after(end); start.add(Calendar.DATE, 1), date = start.getTime()) {
@@ -36,7 +45,9 @@ public class searchTest {
   
     static void getRepoList(String Date) throws IOException, JSONException{
     	URL url = new URL("https://api.github.com/search/repositories?q=%20%20created%3A" + Date + "%20language%3Ajava%20stars:>" + starLimit);
-		BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
+//    	URL url = new URL("https://api.github.com/search/repositories?q=%20%20created%3A" + Date + "%20language%3Ajava");
+		
+    	BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
 		try {
 			jsonParserForRepoList(br);
 		} catch (InterruptedException e) {
@@ -54,13 +65,16 @@ public class searchTest {
     	    String fullName = arr.getJSONObject(i).getString("full_name");
     	    String Url = arr.getJSONObject(i).getString("html_url");
     	    String name = arr.getJSONObject(i).getString("name");
+    	    System.out.println(fullName + " is under checking!");
   	        if(checkLicense(fullName)){
 	  	        Runtime rt = Runtime.getRuntime();
 	  	        Process pr = rt.exec("git clone " + Url);
 	  	        if (pr.waitFor() == 0){
 	  	        	number ++;
-	  	        	rt.exec("mv " + name + " " + number);
-	  	        	CleanUpRepo thread = new CleanUpRepo();
+	  	        	System.out.println("Downloading " + fullName + " it's " + number);
+	  	        	rt.exec("mv " + name + " " + fullName.replace("/", "-"));
+	  	        	curFullName = fullName.replace("/", "-");
+	  	        	cleanUpRepo thread = new cleanUpRepo();
 		  	        thread.start();
 	  	        }  
   	        }
@@ -78,8 +92,7 @@ public class searchTest {
 			URL url = new URL("https://api.github.com/search/code?q=Apache+License%2Brepo%3A" + query + "+path:/");
 			BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
 			if (jsonParserForLicense(br))
-				return true;
-	  	    Thread.sleep(5000);                
+				return true;               
 			URL url2 = new URL("https://api.github.com/search/code?q=MIT+License%2Brepo%3A" + query + "+path:/");
 			BufferedReader br2 = new BufferedReader(new InputStreamReader(url2.openStream()));
 			return jsonParserForLicense(br2);
@@ -89,7 +102,8 @@ public class searchTest {
 		}
     }
     
-    static boolean jsonParserForLicense(BufferedReader br) throws JSONException, IOException{
+    static boolean jsonParserForLicense(BufferedReader br) throws JSONException, IOException, InterruptedException{
+    	Thread.sleep(6000); 
     	String message = IOUtils.toString(br);
     	JSONObject obj = new JSONObject(message);
     	JSONArray arr = obj.getJSONArray("items");
