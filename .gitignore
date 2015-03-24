@@ -2,3 +2,5 @@ bin/
 repos/
 S3.properties
 *.pyc
+
+finished.log
