@@ -1,0 +1,6 @@
+# Fill in your AWS Access Key ID and Secret Access Key
+# http://aws.amazon.com/security-credentials
+accessKey = put-access-key-here
+secretKey = put-secret-key-here
+bucketName = put-bucket-name-here
+bucketPath = path/in/bucket/here
