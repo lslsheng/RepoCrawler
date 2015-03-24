@@ -3,6 +3,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
@@ -11,7 +12,7 @@ import com.amazonaws.services.s3.transfer.MultipleFileUpload;
 import com.amazonaws.services.s3.transfer.TransferManager;
 
 
-public class uploadFileToS3 {
+public class UploadFileToS3 {
 	private static String bucketName     = "";
 	private static String uploadFileName = "";
 	private static String access_key_id = "";
@@ -20,7 +21,9 @@ public class uploadFileToS3 {
 	private static String name = "";
 	private static String bucketPath = "";
 	
-	public static void startUpload() throws IOException, AmazonServiceException, AmazonClientException, InterruptedException {
+	private final static Logger LOGGER = Logger.getLogger(UploadFileToS3.class.getName());
+	
+	public void startUpload() throws IOException, AmazonServiceException, AmazonClientException, InterruptedException {
 		setUpClass();
 		BasicAWSCredentials awsCreds = new BasicAWSCredentials(access_key_id, secret_access_key);
 		// Each instance of TransferManager maintains its own thread pool
@@ -28,18 +31,19 @@ public class uploadFileToS3 {
 		TransferManager tx = new TransferManager(awsCreds);
 		// The upload and download methods return immediately, while
 		// TransferManager processes the transfer in the background thread pool
+		LOGGER.info("Uploading " + uploadFileName + " to S3...");
 		MultipleFileUpload upload = tx.uploadDirectory(bucketName, bucketPath + name, new File(uploadFileName), true);
 		// While the transfer is processing, you can work with the transfer object
 		upload.waitForCompletion();
-		 
+		LOGGER.info("Finished uploading " + uploadFileName + " to S3!");
 		// After the upload is complete, call shutdownNow to release the resources.
 		tx.shutdownNow();
 	}
 	
-	public void setFullName_propertyPath (String fullName){
+	public void setFullName_propertyPath (String repoPath, String fullName){
 		name = fullName;
-		uploadFileName = System.getProperty("user.dir") + "/" +  fullName;
-		propertyPath = searchTest.propertyPath; 
+		uploadFileName = System.getProperty("user.dir") + "/" + repoPath + "/" + fullName;
+		propertyPath = SearchTest.propertyPath; 
 	}
 	
 	

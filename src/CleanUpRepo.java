@@ -1,28 +1,36 @@
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
-import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
 
 
-public class cleanUpRepo extends Thread {
-	private static int id = 1;
-	private static String fullName = "";
+public class CleanUpRepo extends Thread {
+	private int id;
+	private String fullName;
+	private String repoPath;
+	
+	private final static Logger LOGGER = Logger.getLogger(CleanUpRepo.class.getName());
+	
+	public CleanUpRepo(int id, String fullName, String repoPath) {
+		this.id = id;
+		this.fullName = fullName;
+		this.repoPath = repoPath;
+	}
+	
     public void run(){
 //       System.out.println("MyThread running");
-       id = searchTest.number;
-       fullName = searchTest.curFullName;
+//       id = SearchTest.number;
+//       fullName = SearchTest.curFullName;
        try {
-    	   mv_clean_folder();
-    	   cleanUp();
+    	   this.mv_clean_folder();
+    	   this.cleanUp();
 		} catch (IOException | InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-       uploadFileToS3 upload = new uploadFileToS3();
-       upload.setFullName_propertyPath(fullName);
+       UploadFileToS3 upload = new UploadFileToS3();
+       upload.setFullName_propertyPath(this.repoPath, this.fullName);
        try {
 			upload.startUpload();
 		} catch (AmazonClientException | IOException
@@ -33,20 +41,22 @@ public class cleanUpRepo extends Thread {
 			
     }
    
-	static void mv_clean_folder () throws IOException{
+	private void mv_clean_folder() throws IOException{
     	Runtime rt = Runtime.getRuntime();
-	    rt.exec("mkdir temp" + id);
-    	listf(System.getProperty("user.dir") + "/" + fullName);
+    	String tempDir = this.repoPath + "/temp" + this.id;
+	    rt.exec("mkdir " + tempDir);
+	    LOGGER.info(this.fullName + ": making temp directory at: " + tempDir);
+    	listf(System.getProperty("user.dir") + "/" + this.repoPath + "/" + this.fullName);
     }
     
-    public static void listf(String directoryName) throws IOException {
+    public void listf(String directoryName) throws IOException {
         File directory = new File(directoryName);
         // get all the files from a directory
         File[] fList = directory.listFiles();
         for (File file : fList) {
             if (file.isFile()) {
             	if (isJava(file)){
-            		moveFile(file);
+            		this.moveFile(file);
             	}
             } else if (file.isDirectory()) {
                 listf(file.getAbsolutePath());
@@ -65,17 +75,20 @@ public class cleanUpRepo extends Thread {
     	return false;
     }
     
-    public static void moveFile(File file) throws IOException{
+    public void moveFile(File file) throws IOException{
     	Runtime rt = Runtime.getRuntime();
-    	rt.exec("cp " + file.getAbsolutePath() + " " + System.getProperty("user.dir") + "/temp" + id);
+    	rt.exec("cp " + file.getAbsolutePath() + " " + System.getProperty("user.dir") + "/" + this.repoPath + "/temp" + this.id);
     }
     
-    public static void cleanUp() throws IOException, InterruptedException{
+    public void cleanUp() throws IOException, InterruptedException{
     	Runtime rt = Runtime.getRuntime();
 //    	System.out.println("mv temp" + id + " " + id);
-    	Process pr = rt.exec("rm -rf " + fullName);
+    	String tempDir = this.repoPath + "/temp" + this.id;
+    	String repoDir = this.repoPath + "/" + this.fullName;
+    	Process pr = rt.exec("rm -rf " + repoDir);
     	pr.waitFor();
-    	rt.exec("mv temp" + id + " " + fullName);
+    	rt.exec("mv " + tempDir + " " + repoDir);
+    	LOGGER.info(this.fullName + ": moving temp directory: " + tempDir + ", to repo directory: " + repoDir);
     }
     
  }
