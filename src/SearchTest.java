@@ -1,6 +1,9 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -37,8 +40,13 @@ public class SearchTest {
 	      // run it day by day
 	      for (Date date = start.getTime(); !start.after(end); start.add(Calendar.DATE, 1), date = start.getTime()) {
 	          String dateStr = dateToString(date);
-	      	  System.out.println(dateStr);
+	      	  LOGGER.info(dateStr);
 	      	  getRepoList(dateStr);
+		      try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("finished.log", true)))) {
+		        out.println(dateStr);
+		      } catch (IOException e) {
+			    e.printStackTrace();
+		      }
 	      }	
    }
    
@@ -69,6 +77,7 @@ public class SearchTest {
     	    String fullName = arr.getJSONObject(i).getString("full_name");
     	    String Url = arr.getJSONObject(i).getString("html_url");
     	    
+    	    LOGGER.info(fullName + ": checking for license...");
   	        if(checkLicense(fullName)){
   	        	LOGGER.info(fullName + ": found license.");
 	  	        Runtime rt = Runtime.getRuntime();
