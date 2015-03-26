@@ -3,14 +3,14 @@ from fabric.api import *
 from datetime import date, timedelta
 import boto
 
-# Java machines are preset to connect to AWS machines in ~/.ssh/config
+# 'java#' machines are preset to connect to AWS machines in ~/.ssh/config
+# Can change these 
 env.roledefs.update({
     'aws': ['java1', 'java2', 'java3', 'java4', 'java5']
 })
 
 env.use_ssh_config = True
 
-# Configuration
 config = {
     'java1': { 'start': '2010.01.01', 'end': '2010.12.31' },
     'java2': { 'start': '2011.01.01', 'end': '2011.12.31' },
