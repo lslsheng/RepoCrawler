@@ -43,7 +43,6 @@ def stats():
     i += 1
     if (i % 1000) == 0:
       print "Found " + str(i) + " repositories so far..."
-    print key
 
   print "Total repositories found: " + str(i)
 
