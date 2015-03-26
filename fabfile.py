@@ -1,11 +1,13 @@
 from __future__ import with_statement
 from fabric.api import *
+from datetime import date, timedelta
+import boto
 
-# These are all preset to connect to AWS machines in ~/.ssh/config
-env.hosts = ['java1', 'java2', 'java3', 'java4', 'java5']
+# Java machines are preset to connect to AWS machines in ~/.ssh/config
+env.roledefs.update({
+    'aws': ['java1', 'java2', 'java3', 'java4', 'java5']
+})
 
-# Force parallel execution
-env.parallel = True
 env.use_ssh_config = True
 
 # Configuration
@@ -17,6 +19,9 @@ config = {
     'java5': { 'start': '2014.01.01', 'end': '2014.12.31' }
 }
 
+@task
+@parallel
+@roles('aws')
 def deploy():
   with cd('~/RepoCrawler'):
     run('git checkout cmd-line-args')
@@ -24,3 +29,70 @@ def deploy():
     run('java -jar repoCrawler.jar ' +
       config[env.host_string]['start'] + ' ' +
       config[env.host_string]['end'] + ' S3.properties')
+
+# Return statistics for file downloaded
+@task
+def stats():
+  print "Connecting to S3..."
+  s3 = boto.connect_s3()
+  bucket = s3.get_bucket('umich-dbgroup')
+  item_iterator = bucket.list(prefix="cjbaik/java-corpus/", delimiter="/")
+
+  i = 0
+  for key in item_iterator:
+    i += 1
+    if (i % 1000) == 0:
+      print "Found " + str(i) + " repositories so far..."
+    print key
+
+  print "Total repositories found: " + str(i)
+
+# Check if RepoCrawler is finished for a date range
+@task
+def finished(begin_date_string=None, end_date_string=None):
+  if begin_date_string is None or end_date_string is None:
+    print 'Example execution: fab finished:2010-01-10,2010-12-31'
+    return
+
+  begin_date_year, begin_date_month, begin_date_day = begin_date_string.split('-')
+  end_date_year, end_date_month, end_date_day = end_date_string.split('-')
+
+  begin_date = date(int(begin_date_year), int(begin_date_month), int(begin_date_day))
+  end_date = date(int(end_date_year), int(end_date_month), int(end_date_day))
+
+  finished_dates = []
+  dates_from_servers = execute(retrieve_finished_from_servers)
+
+  for server, dates_per_server in dates_from_servers.iteritems():
+    finished_dates = finished_dates + dates_per_server.splitlines()
+
+  finished_dates.sort()
+
+  if len(finished_dates) < 0:
+    raise Exception('No dates retrieved from server.')
+
+  missing_dates = []
+
+  current_date = begin_date
+  while True:
+    current_date = current_date + timedelta(days=1)
+    if current_date > end_date:
+        break
+    if current_date.isoformat() not in finished_dates:
+      missing_dates.append(current_date)
+
+  if len(missing_dates) == 0:
+    print 'RepoCrawler has saved all results for the range: ' + begin_date.isoformat() + ' to ' + end_date.isoformat()
+  else:
+    print 'Dates that are missing from the range: ' + begin_date.isoformat() + ' to ' + end_date.isoformat()
+    for missing_date in missing_dates:
+      print missing_date.isoformat()
+
+# Helper task for `finished`
+@task
+@parallel
+@roles('aws')
+def retrieve_finished_from_servers():
+  with cd('~/RepoCrawler'):
+    stdout = run('cat finished.log')
+  return stdout
