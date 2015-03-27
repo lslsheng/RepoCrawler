@@ -24,7 +24,7 @@ config = {
 @roles('aws')
 def deploy():
   with cd('~/RepoCrawler'):
-    run('git checkout cmd-line-args')
+    run('git checkout master')
     run('git pull')
     run('java -jar repoCrawler.jar ' +
       config[env.host_string]['start'] + ' ' +
