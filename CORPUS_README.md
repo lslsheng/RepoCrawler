@@ -11,6 +11,6 @@ There are some criteria limiting which corpuses are included:
 
 ## Stats
 
-* Total number of repositories: 4637
-* Total number of .java files: 696659
-* Total file size: 1592767546251 bytes = ~3.88 GB
+* Total number of repositories: 4738
+* Total number of .java files: 741795
+* Total file size: 1592767546251 bytes = ~4.12 GB
