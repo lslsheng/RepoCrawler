@@ -36,15 +36,32 @@ def stats():
   print "Connecting to S3..."
   s3 = boto.connect_s3()
   bucket = s3.get_bucket('umich-dbgroup')
-  item_iterator = bucket.list(prefix="cjbaik/java-corpus/", delimiter="/")
+  repo_iterator = bucket.list(prefix="cjbaik/java-corpus/", delimiter="/")
+  file_iterator = bucket.list(prefix="cjbaik/java-corpus/")
 
-  i = 0
-  for key in item_iterator:
-    i += 1
-    if (i % 1000) == 0:
-      print "Found " + str(i) + " repositories so far..."
+  repo_index = 0
 
-  print "Total repositories found: " + str(i)
+  print "Iterating through repositories..."
+  for key in repo_iterator:
+    repo_index += 1
+    if (repo_index % 1000) == 0:
+      print "Found " + str(repo_index) + " repositories so far..."
+
+  file_index = 0
+  file_size = 0
+
+  print "Iterating through files..."
+  for key in file_iterator:
+    file_index += 1
+    file_size += key.size
+    if (key.size > 1000000):
+      files_exceeding_mb += "\t" + str(key) + "\n"
+    if (file_index % 5000) == 0:
+      print "Found " + str(file_index) + " files so far..."
+
+  print "Total repositories found: " + str(repo_index)
+  print "Total number of files found: " + str(file_index)
+  print "Total file size: " + str(file_size)
 
 # Check if RepoCrawler is finished for a date range
 @task
