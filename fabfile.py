@@ -2,6 +2,7 @@ from __future__ import with_statement
 from fabric.api import *
 from datetime import date, timedelta
 import boto
+import re
 
 # 'java#' machines are preset to connect to AWS machines in ~/.ssh/config
 # Can change these 
@@ -30,6 +31,23 @@ def deploy():
       config[env.host_string]['start'] + ' ' +
       config[env.host_string]['end'] + ' S3.properties')
 
+# fix repos that somehow got uploaded without a slash after cjbaik/java-corpus
+@task
+def fixRepos():
+  print "Connecting to S3..."
+  s3 = boto.connect_s3()
+  bucket = s3.get_bucket('umich-dbgroup')
+  repo_iterator = bucket.list(prefix="cjbaik/java-corpus", delimiter="/")
+
+  repo_index = 0
+  for key in repo_iterator:
+    repo_index += 1
+    matcher = re.compile(r"cjbaik/java-corpus([^/]+)")
+    match = matcher.match(key.name)
+    if match is not None:
+      newKeyName = match.group(1)
+      local('aws s3 mv s3://umich-dbgroup/' + key.name + ' s3://umich-dbgroup/cjbaik/java-corpus/' + newKeyName + '/ --recursive')
+
 # Return statistics for file downloaded
 @task
 def stats():
@@ -54,8 +72,6 @@ def stats():
   for key in file_iterator:
     file_index += 1
     file_size += key.size
-    if (key.size > 1000000):
-      files_exceeding_mb += "\t" + str(key) + "\n"
     if (file_index % 5000) == 0:
       print "Found " + str(file_index) + " files so far..."
 
