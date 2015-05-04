@@ -22,13 +22,13 @@ public class CleanUpRepo extends Thread {
 //       System.out.println("MyThread running");
 //       id = SearchTest.number;
 //       fullName = SearchTest.curFullName;
-       try {
-    	   this.mv_clean_folder();
-    	   this.cleanUp();
-		} catch (IOException | InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//       try {
+//    	   this.mv_clean_folder();
+//    	   this.cleanUp();
+//		} catch (IOException | InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
        UploadFileToS3 upload = new UploadFileToS3();
        upload.setFullName_propertyPath(this.repoPath, this.fullName);
        try {
