@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,6 +12,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -81,8 +83,16 @@ public class SearchTest {
   	        if(checkLicense(fullName)){
   	        	LOGGER.info(fullName + ": found license.");
 	  	        Runtime rt = Runtime.getRuntime();
-	  	        fullName = fullName.replace("/", "-");
+	  	        fullName = fullName.replace("/", "_");
 	  	        String repoDir = REPO_PATH + "/" + fullName;
+	  	        
+	  	        // If directory already exists
+	  	        File dir = new File(repoDir);
+	  	        if (dir.exists()) {
+	  	        	LOGGER.info(fullName + ": Removing directory because it already exists to allow git clone.");
+	  	        	FileUtils.deleteDirectory(dir);
+	  	        }
+	  	        
 	  	        Process pr = rt.exec("git clone " + Url + " " + repoDir);
   	        	LOGGER.info(fullName + ": cloning into " + repoDir + "...");
 	  	        int gitWaitForCode = pr.waitFor();
