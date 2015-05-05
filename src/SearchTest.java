@@ -67,10 +67,10 @@ public class SearchTest {
     		if (retries > 3) {
     			throw e;
     		} else {
-    			// Retry after specified period of time
-    			LOGGER.info("Searching for repos failed. Waiting 60 seconds before retry...");
-    			Thread.sleep(60000);
+    			// Retry after multiplicatively increasing amount of time
     			retries++;
+    			LOGGER.info("Searching for repos failed. Waiting before retry...");
+    			Thread.sleep(60000 * retries);
     			LOGGER.info("Attempting to search for repos again. Retry attempt: " + retries);
     			getRepoList(date, retries);
     			return;
