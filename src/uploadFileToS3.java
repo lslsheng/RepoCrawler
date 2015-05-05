@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.FileUtils;
+
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -32,10 +34,13 @@ public class UploadFileToS3 {
 		// The upload and download methods return immediately, while
 		// TransferManager processes the transfer in the background thread pool
 		LOGGER.info("Uploading " + uploadFileName + " to S3...");
-		MultipleFileUpload upload = tx.uploadDirectory(bucketName, bucketPath + name, new File(uploadFileName), true);
+		File directory = new File(uploadFileName);
+		MultipleFileUpload upload = tx.uploadDirectory(bucketName, bucketPath + name, directory, true);
 		// While the transfer is processing, you can work with the transfer object
 		upload.waitForCompletion();
 		LOGGER.info("Finished uploading " + uploadFileName + " to S3!");
+		// Delete directory after done uploading
+		FileUtils.deleteDirectory(directory);
 		// After the upload is complete, call shutdownNow to release the resources.
 		tx.shutdownNow();
 	}
