@@ -10,6 +10,10 @@ import org.apache.commons.io.FileUtils;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.transfer.MultipleFileUpload;
 import com.amazonaws.services.s3.transfer.TransferManager;
 
@@ -28,6 +32,16 @@ public class UploadFileToS3 {
 	public void startUpload() throws IOException, AmazonServiceException, AmazonClientException, InterruptedException {
 		setUpClass();
 		BasicAWSCredentials awsCreds = new BasicAWSCredentials(access_key_id, secret_access_key);
+		
+		AmazonS3Client s3Client = new AmazonS3Client(awsCreds);
+		LOGGER.info("Checking if " + bucketPath + name + " exists in S3 bucket: " + bucketName);
+		
+		ObjectListing listing = s3Client.listObjects(bucketName, bucketPath + name);
+		if (listing.getObjectSummaries().size() > 0) {
+			LOGGER.info("Aborting upload to S3. '" + bucketPath + name + "' already exists on S3.");
+			return;
+		}
+		
 		// Each instance of TransferManager maintains its own thread pool
 		// where transfers are processed, so share an instance when possible
 		TransferManager tx = new TransferManager(awsCreds);
