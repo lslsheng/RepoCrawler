@@ -36,9 +36,13 @@ public class UploadFileToS3 {
 		AmazonS3Client s3Client = new AmazonS3Client(awsCreds);
 		LOGGER.info("Checking if " + bucketPath + name + " exists in S3 bucket: " + bucketName);
 		
+		File directory = new File(uploadFileName);
+		
 		ObjectListing listing = s3Client.listObjects(bucketName, bucketPath + name);
 		if (listing.getObjectSummaries().size() > 0) {
 			LOGGER.info("Aborting upload to S3. '" + bucketPath + name + "' already exists on S3.");
+			FileUtils.deleteDirectory(directory);
+			LOGGER.info("Deleted " + uploadFileName + ".");
 			return;
 		}
 		
@@ -48,13 +52,13 @@ public class UploadFileToS3 {
 		// The upload and download methods return immediately, while
 		// TransferManager processes the transfer in the background thread pool
 		LOGGER.info("Uploading " + uploadFileName + " to S3...");
-		File directory = new File(uploadFileName);
 		MultipleFileUpload upload = tx.uploadDirectory(bucketName, bucketPath + name, directory, true);
 		// While the transfer is processing, you can work with the transfer object
 		upload.waitForCompletion();
 		LOGGER.info("Finished uploading " + uploadFileName + " to S3!");
 		// Delete directory after done uploading
 		FileUtils.deleteDirectory(directory);
+		LOGGER.info("Deleted " + uploadFileName + ".");
 		// After the upload is complete, call shutdownNow to release the resources.
 		tx.shutdownNow();
 	}
