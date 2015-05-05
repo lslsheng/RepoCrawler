@@ -73,6 +73,7 @@ public class SearchTest {
     			retries++;
     			LOGGER.info("Attempting to search for repos again. Retry attempt: " + retries);
     			getRepoList(date, retries);
+    			return;
     		}
     	}
 		try {
