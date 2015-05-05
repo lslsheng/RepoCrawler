@@ -43,7 +43,7 @@ public class SearchTest {
 	      for (Date date = start.getTime(); !start.after(end); start.add(Calendar.DATE, 1), date = start.getTime()) {
 	          String dateStr = dateToString(date);
 	      	  LOGGER.info(dateStr);
-	      	  getRepoList(dateStr);
+	      	  getRepoList(dateStr, 0);
 		      try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("finished.log", true)))) {
 		        out.println(dateStr);
 		      } catch (IOException e) {
@@ -54,13 +54,27 @@ public class SearchTest {
    
     
   
-    static void getRepoList(String Date) throws IOException, JSONException{
-    	URL url = new URL("https://api.github.com/search/repositories?q=%20%20created%3A" + Date + "%20language%3Ajava%20stars:>" + STAR_LIMIT);
-//    	URL url = new URL("https://api.github.com/search/repositories?q=%20%20created%3A" + Date + "%20language%3Ajava");
+    static void getRepoList(String date, int retries) throws IOException, JSONException, InterruptedException{
+    	URL url = new URL("https://api.github.com/search/repositories?q=%20%20created%3A" + date + "%20language%3Ajava%20stars:>" + STAR_LIMIT);
+//    	URL url = new URL("https://api.github.com/search/repositories?q=%20%20created%3A" + date + "%20language%3Ajava");
     	
     	LOGGER.info("Searching for repos: " + url);
 		
-    	BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
+    	BufferedReader br = null;
+    	try {
+    		br = new BufferedReader(new InputStreamReader(url.openStream()));
+    	} catch (IOException e) {
+    		if (retries > 3) {
+    			throw e;
+    		} else {
+    			// Retry after specified period of time
+    			LOGGER.info("Searching for repos failed. Waiting 10 seconds before retry...");
+    			Thread.sleep(10000);
+    			retries++;
+    			LOGGER.info("Attempting to search for repos again. Retry attempt: " + retries);
+    			getRepoList(date, retries);
+    		}
+    	}
 		try {
 			jsonParserForRepoList(br);
 		} catch (InterruptedException e) {
