@@ -54,8 +54,8 @@ def stats():
   print "Connecting to S3..."
   s3 = boto.connect_s3()
   bucket = s3.get_bucket('umich-dbgroup')
-  repo_iterator = bucket.list(prefix="cjbaik/java-corpus/", delimiter="/")
-  file_iterator = bucket.list(prefix="cjbaik/java-corpus/")
+  repo_iterator = bucket.list(prefix="cjbaik/java-corpus-new/", delimiter="/")
+  file_iterator = bucket.list(prefix="cjbaik/java-corpus-new/")
 
   repo_index = 0
 

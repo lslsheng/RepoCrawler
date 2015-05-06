@@ -2,7 +2,9 @@
 
 ## Corpus Information
 
-This corpus contains all the .java files from GitHub repositories that were created between the dates 2008-05-01 and 2015-03-26, inclusive.
+This corpus contains GitHub repositories that were created between the dates 2008-05-01 and 2015-05-01, inclusive.
+They were retrieved between 2015-05-04 and 2015-05-06.
+
 There are some criteria limiting which corpuses are included:
 
 * repositories contain primarily Java code (according to GitHub search's definition of what constitutes a repository "written in Java")
@@ -11,6 +13,6 @@ There are some criteria limiting which corpuses are included:
 
 ## Stats
 
-* Total number of repositories: 4738
-* Total number of .java files: 741795
-* Total file size: 1592767546251 bytes = ~4.12 GB
+* Total number of repositories: 5313
+* Total number of files: 1991725
+* Total file size: 117887643998 bytes = 117.888 GB
